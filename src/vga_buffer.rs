@@ -51,10 +51,29 @@ pub struct Writer {
     buffer: &'static mut Buffer,
 }
 
-pub fn write_char(current_char: u8) {
+impl Writer {
 
-    //Case 1: current_char == '\n'
+    pub fn write_char(&mut self, curr_char: u8) {
 
-    //Case 2: 0 <= column_position <= BUFFER_WIDTH
+        match curr_char {
+            b'\n' => self.new_line(),
+            _ => {
 
+                if self.column_position == BUFFER_WIDTH - 1 {
+                    self.column_position = 0;
+                }
+
+                let row = BUFFER_HEIGHT-1;
+                let col = self.column_position;
+
+                self.buffer.chars[row][col] = ScreenChar { ascii_character: (curr_char), color_code: (self.color_code) };
+
+                self.column_position += 1;
+
+            },
+        }
+
+    }
+
+    pub fn new_line(&mut self) {/* TODO */}
 }
