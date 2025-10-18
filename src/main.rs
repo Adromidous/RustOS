@@ -26,5 +26,7 @@ pub extern "C" fn _start() -> ! {
         }
     }
 
+    vga_buffer::write_char(0x41); //WRITE CHARACTER A
+
     loop {}
 }

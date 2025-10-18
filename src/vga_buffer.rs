@@ -50,3 +50,11 @@ pub struct Writer {
     color_code: ColorCode,
     buffer: &'static mut Buffer,
 }
+
+pub fn write_char(current_char: u8) {
+
+    //Case 1: current_char == '\n'
+
+    //Case 2: 0 <= column_position <= BUFFER_WIDTH
+
+}
