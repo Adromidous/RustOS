@@ -73,7 +73,19 @@ impl Writer {
 
     }
 
-    pub fn new_line(&mut self) {/* TODO */}
+    fn new_line(&mut self) {
+        for row in 0..BUFFER_HEIGHT-1 {
+            for col in 0..BUFFER_WIDTH {
+                self.buffer.chars[row][col] = self.buffer.chars[row+1][col];
+            }
+        }
+
+        for col in 0..BUFFER_WIDTH {
+            self.buffer.chars[BUFFER_HEIGHT-1][col] = ScreenChar { ascii_character: (0x0), color_code: (self.color_code) };
+        }
+
+        self.column_position = 0;
+    }
 
     pub fn write_string(&mut self, curr_str: &str) {
 
@@ -94,5 +106,9 @@ pub fn write_something() {
         buffer: unsafe {&mut *(0xb8000 as *mut Buffer)},
     };
 
-    writer.write_string("Hello World");
+    writer.write_string("Hello World\n");
+    writer.write_string("Adromidous!");
+    writer.write_string("\n");
+    writer.write_string("\n");
+    writer.write_string("\n");
 }
