@@ -53,12 +53,11 @@ pub struct Writer {
 
 impl Writer {
 
-    pub fn write_char(&mut self, curr_char: u8) {
+    fn write_char(&mut self, curr_char: u8) {
 
         match curr_char {
             b'\n' => self.new_line(),
             _ => {
-
                 if self.column_position == BUFFER_WIDTH - 1 {
                     self.column_position = 0;
                 }
@@ -69,11 +68,31 @@ impl Writer {
                 self.buffer.chars[row][col] = ScreenChar { ascii_character: (curr_char), color_code: (self.color_code) };
 
                 self.column_position += 1;
-
             },
         }
 
     }
 
     pub fn new_line(&mut self) {/* TODO */}
+
+    pub fn write_string(&mut self, curr_str: &str) {
+
+        for byte in curr_str.bytes() {
+            match byte {
+                0x20..=0x70 | b'\n' => {self.write_char(byte)},
+                _=> {self.write_char(0xfe)},
+            }
+        }
+
+    }
+}
+
+pub fn write_something() {
+    let mut writer: Writer = Writer {
+        column_position: 0,
+        color_code: ColorCode::new(Color::Yellow, Color::Black),
+        buffer: unsafe {&mut *(0xb8000 as *mut Buffer)},
+    };
+
+    writer.write_string("Hello World");
 }
