@@ -20,6 +20,8 @@ pub enum Color {
     White = 15
 }
 
+use volatile::Volatile;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)] //Used on structs/enums with one field.
 struct ColorCode(u8);
@@ -42,7 +44,7 @@ const BUFFER_WIDTH: usize = 80;
 
 #[repr(transparent)]
 struct Buffer {
-    chars: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT],
+    chars: [[Volatile<ScreenChar>; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
 
 pub struct Writer {
@@ -65,7 +67,10 @@ impl Writer {
                 let row = BUFFER_HEIGHT-1;
                 let col = self.column_position;
 
-                self.buffer.chars[row][col] = ScreenChar { ascii_character: (curr_char), color_code: (self.color_code) };
+                self.buffer.chars[row][col].write(ScreenChar { 
+                    ascii_character: (curr_char), 
+                    color_code: (self.color_code)
+                });
 
                 self.column_position += 1;
             },
@@ -76,26 +81,36 @@ impl Writer {
     fn new_line(&mut self) {
         for row in 0..BUFFER_HEIGHT-1 {
             for col in 0..BUFFER_WIDTH {
-                self.buffer.chars[row][col] = self.buffer.chars[row+1][col];
+                self.buffer.chars[row][col].write(self.buffer.chars[row+1][col].read());
             }
         }
 
         for col in 0..BUFFER_WIDTH {
-            self.buffer.chars[BUFFER_HEIGHT-1][col] = ScreenChar { ascii_character: (0x0), color_code: (self.color_code) };
+            self.buffer.chars[BUFFER_HEIGHT-1][col].write(ScreenChar { 
+                ascii_character: (0x0), 
+                color_code: (self.color_code) 
+            });
         }
 
         self.column_position = 0;
     }
 
     pub fn write_string(&mut self, curr_str: &str) {
-
         for byte in curr_str.bytes() {
             match byte {
                 0x20..=0x70 | b'\n' => {self.write_char(byte)},
                 _=> {self.write_char(0xfe)},
             }
         }
+    }
+}
 
+use core::fmt::{self, Error};
+
+impl fmt::Write for Writer {
+    fn write_str(&mut self, s: &str) -> Result<(), core::fmt::Error> {
+        self.write_string(s);
+        Ok(())
     }
 }
 
